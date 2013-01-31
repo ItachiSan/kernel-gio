@@ -118,4 +118,5 @@ obj-$(CONFIG_STAGING)		+= staging/
 obj-y				+= platform/
 obj-y				+= ieee802154/
 obj-y				+= dpram/
-#obj-$(CONFIG_MSM_PARAM)		+= param/
+#obj-$(CONFIG_MSM_PARAM)	+= param/
+obj-y				+= compcache/

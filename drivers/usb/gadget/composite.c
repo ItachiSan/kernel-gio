@@ -828,14 +828,15 @@ composite_setup(struct usb_gadget *gadget, const struct usb_ctrlrequest *ctrl)
 	u8				endp;
 	int tmp = intf;
 	int id = 0;
-	unsigned long			flags;
-
+	unsigned long      flags;
+	
 	spin_lock_irqsave(&cdev->lock, flags);
 	if (!cdev->connected) {
-		cdev->connected = 1;
-		schedule_work(&cdev->switch_work);
+	  cdev->connected = 1;
+	  schedule_work(&cdev->switch_work);
 	}
 	spin_unlock_irqrestore(&cdev->lock, flags);
+
 
 	/* partial re-init of the response message; the function or the
 	 * gadget might need to intercept e.g. a control-OUT completion
@@ -976,8 +977,7 @@ unknown:
 		case USB_RECIP_INTERFACE:
 			if (cdev->config == NULL)
 				return value;
-			if (cdev->config)
-				f = cdev->config->interface[intf];
+			f = cdev->config->interface[intf];
 			break;
 
 		case USB_RECIP_ENDPOINT:
@@ -1057,15 +1057,8 @@ static void composite_disconnect(struct usb_gadget *gadget)
 		reset_config(cdev);
 
 /* mute switch bug fix  */	
-#ifdef CONFIG_USB_SAMSUNG_VBUS_CHECK
 	cdev->connected = 0;
-		schedule_work(&cdev->switch_work);
-#else
-	if (cdev->mute_switch)
-		cdev->mute_switch = 0;
-	else
-		schedule_work(&cdev->switch_work);
-#endif
+	schedule_work(&cdev->switch_work);
 	spin_unlock_irqrestore(&cdev->lock, flags);
 }
 
@@ -1170,14 +1163,14 @@ composite_switch_work(struct work_struct *data)
 	struct usb_configuration *config = cdev->config;
 	int connected;
 	unsigned long flags;
-
+	
 	spin_lock_irqsave(&cdev->lock, flags);
 	if (cdev->connected != cdev->sw_connected.state) {
-		connected = cdev->connected;
-		spin_unlock_irqrestore(&cdev->lock, flags);
-		switch_set_state(&cdev->sw_connected, connected);
+	  connected = cdev->connected;
+	  spin_unlock_irqrestore(&cdev->lock, flags);
+	  switch_set_state(&cdev->sw_connected, connected);
 	} else {
-		spin_unlock_irqrestore(&cdev->lock, flags);
+	  spin_unlock_irqrestore(&cdev->lock, flags);
 	}
 
 	if (config)
@@ -1221,6 +1214,14 @@ static int composite_bind(struct usb_gadget *gadget)
 	 */
 	usb_ep_autoconfig_reset(cdev->gadget);
 
+	/* standardized runtime overrides for device ID data */
+	if (idVendor)
+		cdev->desc.idVendor = cpu_to_le16(idVendor);
+	if (idProduct)
+		cdev->desc.idProduct = cpu_to_le16(idProduct);
+	if (bcdDevice)
+		cdev->desc.bcdDevice = cpu_to_le16(bcdDevice);
+
 	/* composite gadget needs to assign strings for whole device (like
 	 * serial number), register function drivers, potentially update
 	 * power state and consumption, etc
@@ -1232,7 +1233,7 @@ static int composite_bind(struct usb_gadget *gadget)
 	cdev->sw_connected.name = "usb_connected";
 	status = switch_dev_register(&cdev->sw_connected);
 	if (status < 0)
-		goto fail;
+	  goto fail;
 	cdev->sw_config.name = "usb_configuration";
 	status = switch_dev_register(&cdev->sw_config);
 	if (status < 0)
@@ -1241,14 +1242,6 @@ static int composite_bind(struct usb_gadget *gadget)
 
 	cdev->desc = *composite->dev;
 	cdev->desc.bMaxPacketSize0 = gadget->ep0->maxpacket;
-
-	/* standardized runtime overrides for device ID data */
-	if (idVendor)
-		cdev->desc.idVendor = cpu_to_le16(idVendor);
-	if (idProduct)
-		cdev->desc.idProduct = cpu_to_le16(idProduct);
-	if (bcdDevice)
-		cdev->desc.bcdDevice = cpu_to_le16(bcdDevice);
 
 	/* strings can't be assigned before bind() allocates the
 	 * releavnt identifiers

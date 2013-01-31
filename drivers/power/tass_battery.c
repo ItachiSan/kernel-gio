@@ -471,9 +471,6 @@ struct msm_battery_info {
 #define TIMER_MASK				(0x1 << 1)
 #define RECHG_START_MASK		(0x1 << 0)
 
-
-static int chg_polling_cnt=0;
-
 static int uCount=1;
 static int dwTotal=0;
 
@@ -499,7 +496,6 @@ static int boot_done = 0;
 static int boot_cnt = 0;
 
 static int g_chg_en = 0;
-static int prev_scaled_level=0;
 
 //fatory jig check 2010.08.06 Huh Won
 int batt_jig_on_status=0;
@@ -963,13 +959,13 @@ static int msm_batt_power_get_property(struct power_supply *psy,
 		val->intval = msm_batt_info.batt_technology;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
-		val->intval = msm_batt_info.voltage_max_design*1000;
+		val->intval = msm_batt_info.voltage_max_design;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN:
-		val->intval = msm_batt_info.voltage_min_design*1000;
+		val->intval = msm_batt_info.voltage_min_design;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-		val->intval = msm_batt_info.battery_voltage*1000;
+		val->intval = msm_batt_info.battery_voltage;
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
 		val->intval = msm_batt_info.batt_capacity;
@@ -1047,9 +1043,6 @@ extern int fsa9280_i2c_write(unsigned char u_addr, unsigned char u_data);
 #define BATT_LEVEL4_ADC	2895//2858//2800//2812//2863
 #define BATT_LEVEL5_ADC	3032//3008//2940//2973//3035
 #define BATT_LEVEL6_ADC	3197//3181//3209//3260
-#define BATT_LEVEL7_ADC 3299  //4.03
-#define BATT_LEVEL8_ADC 3418  //4.10
-#define BATT_LEVEL9_ADC 3452  //4.12
 #define BATT_FULL_ADC		3588//3620
 
 #define BATT_RECHR_ADC		3573//3541
@@ -1128,14 +1121,9 @@ int calculate_batt_level(int batt_volt)
 	
 
 	//if(batt_volt >= BATT_FULL_VOLT) //99%
-if (g_chg_en==0)
-{
-	chg_polling_cnt=0;
 	if(batt_volt >= BATT_RECHAR_VOLT) //100%
 	{
 		scaled_level = 100;
-		if ((prev_scaled_level<scaled_level) && (prev_scaled_level!=0))
- 			scaled_level=prev_scaled_level;
 	}
 	else if(batt_volt >=  BATT_LEVEL6_VOLT) //99% ~ 80%
 	{
@@ -1143,8 +1131,6 @@ if (g_chg_en==0)
 		scaled_level = ((batt_volt -BATT_LEVEL6_VOLT+1)*19)/(BATT_RECHAR_VOLT-BATT_LEVEL6_VOLT);
 // 		scaled_level = scaled_level+90;
  		scaled_level = scaled_level+80;
- 		if ((prev_scaled_level<scaled_level) && (prev_scaled_level!=0))
- 			scaled_level=prev_scaled_level;
 	}
 	else if(batt_volt >= BATT_LEVEL5_VOLT) //79% ~ 65%
 	{
@@ -1185,87 +1171,8 @@ if (g_chg_en==0)
 		else scaled_level = 1;
 	}
 
-}
-else
-{
-	
-	if(batt_volt >= BATT_RECHAR_VOLT) //100%
-	{
-		if (prev_scaled_level>=91)
-		{
-			if (prev_scaled_level>=91 && prev_scaled_level<94)
-				scaled_level=91;
-			if (prev_scaled_level>=94 && prev_scaled_level<97)
-				scaled_level=94;
-			if (prev_scaled_level>=97 && prev_scaled_level<100)
-				scaled_level=97;
-			if (prev_scaled_level==100)
-				scaled_level=100;
-	
-			if (chg_polling_cnt!=0)
-			{
-				if (scaled_level!=100)
-				{
-					if ((chg_polling_cnt%60)==0)
-						scaled_level+=3;
-					if (scaled_level==100)
-						chg_polling_cnt=0;
-				}
-			}
-		}
-		else
-		{
-			scaled_level=91;
-		}
-	}
-	else if(batt_volt >=  BATT_LEVEL6_VOLT) //99% ~ 80%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL6_VOLT+1)*10)/(BATT_RECHAR_VOLT-BATT_LEVEL6_VOLT);
- 		scaled_level = scaled_level+80;
-
-	if (prev_scaled_level>scaled_level)
- 			scaled_level=prev_scaled_level;
-
-	}
-	else if(batt_volt >= BATT_LEVEL5_VOLT) //79% ~ 65%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL5_VOLT)*15)/(BATT_LEVEL6_VOLT-BATT_LEVEL5_VOLT);
- 		scaled_level = scaled_level+65;
-	}
-	else if(batt_volt >= BATT_LEVEL4_VOLT) //64% ~ 50%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL4_VOLT)*15)/(BATT_LEVEL5_VOLT-BATT_LEVEL4_VOLT);
- 		scaled_level = scaled_level+50;
-	}
-	else if(batt_volt >= BATT_LEVEL3_VOLT) //49% ~ 35%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL3_VOLT)*15)/(BATT_LEVEL4_VOLT-BATT_LEVEL3_VOLT);
-		scaled_level = scaled_level+35;
-	}
-	else if(batt_volt >= BATT_LEVEL2_VOLT) //34% ~ 20%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL2_VOLT)*15)/(BATT_LEVEL3_VOLT-BATT_LEVEL2_VOLT);
- 		scaled_level = scaled_level+20;
-	}
-	else if(batt_volt >= BATT_LEVEL1_VOLT) //19% ~ 5%
-	{
-		scaled_level = ((batt_volt -BATT_LEVEL1_VOLT)*15)/(BATT_LEVEL2_VOLT-BATT_LEVEL1_VOLT);
- 		scaled_level = scaled_level+5;
-	}
-	else if(batt_volt > BATT_LOW_VOLT) //4% ~ 1%
-	{
-		scaled_level = ((batt_volt -BATT_LOW_VOLT)*4)/(BATT_LEVEL1_VOLT-BATT_LOW_VOLT);
- 		scaled_level = scaled_level+1;
-	}
-	else
-	{
-		if( msm_batt_info.charger_type == CHARGER_TYPE_NONE ) scaled_level = 0; 
-		else scaled_level = 1;
-	}
-	}
-	
 	//printk("[Battery] %s : batt_volt %d, scaled_level %d\n", __func__, batt_volt, scaled_level);
-  prev_scaled_level=scaled_level;
+
 	return scaled_level;
 }
 
@@ -1283,30 +1190,19 @@ int calculate_batt_voltage(int vbatt_adc)
 	static int batt_val[BATT_BUF] = {0,};
 	static int prevVal = 0;
 	int i = 0;
-        int chg_comp=0;
 	
 #ifdef __CONTROL_CHARGING_SUDDEN_LEVEL_UP__
 	if(!prevVal)
 	prevVal = vbatt_adc;
 
-	if((vbatt_adc <= BATT_FULL_ADC) && (vbatt_adc > BATT_LEVEL9_ADC))
-		chg_comp = 70;
-        if((vbatt_adc <= BATT_LEVEL9_ADC) && (vbatt_adc > BATT_LEVEL8_ADC))
-		chg_comp = 210;
-        if((vbatt_adc <= BATT_LEVEL8_ADC) && (vbatt_adc > BATT_LEVEL7_ADC))
-		chg_comp = 240;
-       	if((vbatt_adc <= BATT_LEVEL7_ADC) && (vbatt_adc > BATT_LEVEL6_ADC))
-		chg_comp = 280;
-	if(vbatt_adc <= BATT_LEVEL6_ADC)
-		chg_comp = 320;
 	//Add charging buffering for sudden level up
-	if(vbatt_adc<BATT_FULL_ADC)
+	if(vbatt_adc<BATT_RECHR_ADC)
 	{		
 		if(g_chg_en)
 		{
-			if( prevVal < (vbatt_adc-chg_comp))
+			if( prevVal < (vbatt_adc-BATT_CAL_CHG))
 			{	
-				vbatt_adc = vbatt_adc-chg_comp;		
+				vbatt_adc = vbatt_adc-BATT_CAL_CHG;		
 				printk("[Battery] vbatt_adc-BATT_CAL_CHG \n");
 			}	
 			else
@@ -2080,10 +1976,6 @@ static int get_batt_info(void)
 		msm_batt_info.battery_temp,
 		gChg_connect,gFull_chg,gTimer);
 */
- if (msm_batt_info.battery_voltage >= BATT_RECHAR_VOLT)
-	  chg_polling_cnt++;
- else
-		chg_polling_cnt=0;
 	return 0;
 }
 

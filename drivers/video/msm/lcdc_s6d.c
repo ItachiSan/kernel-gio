@@ -4,6 +4,8 @@
 #include "lcdc_s6d04h0a_beni.c"
 #elif defined(CONFIG_MACH_TASS)
 #include "lcdc_s6d04h0a_tass.c"
+#elif defined(CONFIG_MACH_TASSDT)
+#include "lcdc_s6d04h0a_tassdt.c"
 #elif defined(CONFIG_MACH_LUCAS)
 #include "lcdc_s6d05a0_lucas.c"
 #elif defined(CONFIG_MACH_COOPER)

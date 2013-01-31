@@ -92,8 +92,6 @@ void vt_event_post(unsigned int event, unsigned int old, unsigned int new)
 	unsigned long flags;
 	int wake = 0;
 
-	printk("[%s] event=%x, old=%d, new=%d\n", __func__, event, old, new); 
-
 	spin_lock_irqsave(&vt_event_lock, flags);
 	head = &vt_events;
 
@@ -127,9 +125,6 @@ void vt_event_post(unsigned int event, unsigned int old, unsigned int new)
 static void vt_event_wait(struct vt_event_wait *vw)
 {
 	unsigned long flags;
-
-	printk("[%s]  vw.event=%x \n", __func__, vw->event.event); 
-
 	/* Prepare the event */
 	INIT_LIST_HEAD(&vw->list);
 	vw->done = 0;
@@ -155,8 +150,6 @@ static void vt_event_wait(struct vt_event_wait *vw)
 static int vt_event_wait_ioctl(struct vt_event __user *event)
 {
 	struct vt_event_wait vw;
-
-	printk("[%s]\n", __func__); 
 
 	if (copy_from_user(&vw.event, event, sizeof(struct vt_event)))
 		return -EFAULT;
@@ -186,9 +179,6 @@ static int vt_event_wait_ioctl(struct vt_event __user *event)
 int vt_waitactive(int n)
 {
 	struct vt_event_wait vw;
-
-	printk("[%s]  n=%d,  fg_console=%d\n", __func__, n, fg_console); 
-
 	do {
 		if (n == fg_console + 1)
 			break;
@@ -513,13 +503,11 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 	struct kbd_struct * kbd;
 	unsigned int console;
 	unsigned char ucval;
-	unsigned int uival;
 	void __user *up = (void __user *)arg;
 	int i, perm;
 	int ret = 0;
 
 	console = vc->vc_num;
-	printk("[%s] console=%d   cmd=%x   fg_console=%d\n", __func__, console, cmd, fg_console ); 
 
 	lock_kernel();
 
@@ -669,7 +657,7 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		break;
 
 	case KDGETMODE:
-		uival = vc->vc_mode;
+		ucval = vc->vc_mode;
 		goto setint;
 
 	case KDMAPDISP:
@@ -707,7 +695,7 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		break;
 
 	case KDGKBMODE:
-		uival = ((kbd->kbdmode == VC_RAW) ? K_RAW :
+		ucval = ((kbd->kbdmode == VC_RAW) ? K_RAW :
 				 (kbd->kbdmode == VC_MEDIUMRAW) ? K_MEDIUMRAW :
 				 (kbd->kbdmode == VC_UNICODE) ? K_UNICODE :
 				 K_XLATE);
@@ -729,9 +717,9 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		break;
 
 	case KDGKBMETA:
-		uival = (vc_kbd_mode(kbd, VC_META) ? K_ESCPREFIX : K_METABIT);
+		ucval = (vc_kbd_mode(kbd, VC_META) ? K_ESCPREFIX : K_METABIT);
 	setint:
-		ret = put_user(uival, (int __user *)arg);
+		ret = put_user(ucval, (int __user *)arg);
 		break;
 
 	case KDGETKEYCODE:
@@ -961,7 +949,7 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		for (i = 0; i < MAX_NR_CONSOLES; ++i)
 			if (! VT_IS_IN_USE(i))
 				break;
-		uival = i < MAX_NR_CONSOLES ? (i+1) : -1;
+		ucval = i < MAX_NR_CONSOLES ? (i+1) : -1;
 		goto setint;		 
 
 	/*
@@ -1513,8 +1501,6 @@ long vt_compat_ioctl(struct tty_struct *tty, struct file * file,
 	int perm;
 	int ret = 0;
 
-	printk("[%s] console=%d   cmd=%d\n", __func__, console, cmd); 
-
 	console = vc->vc_num;
 
 	lock_kernel();
@@ -1606,8 +1592,6 @@ static void complete_change_console(struct vc_data *vc)
 	unsigned char old_vc_mode;
 	int old = fg_console;
 
-	printk("[%s]  fg_console=%d\n", __func__, fg_console); 
-
 	last_console = fg_console;
 
 	/*
@@ -1681,8 +1665,6 @@ void change_console(struct vc_data *new_vc)
 {
 	struct vc_data *vc;
 
-	printk("[%s]   nvc_num=%d   fg_console=%d   vt_dont_switch=%d\n", __func__, new_vc->vc_num , fg_console , vt_dont_switch); 
-
 	if (!new_vc || new_vc->vc_num == fg_console || vt_dont_switch)
 		return;
 
@@ -1754,8 +1736,6 @@ int vt_move_to_console(unsigned int vt, int alloc)
 {
 	int prev;
 
-	printk("[%s]\n", __func__); 
-
 	acquire_console_sem();
 	/* Graphics mode - up to X */
 	if (disable_vt_switch) {
@@ -1797,8 +1777,6 @@ int vt_move_to_console(unsigned int vt, int alloc)
  */
 void pm_set_vt_switch(int do_switch)
 {
-	printk("[%s]  do_switch=%d   dvs=%d\n", __func__, do_switch, disable_vt_switch); 
-	
 	acquire_console_sem();
 	disable_vt_switch = !do_switch;
 	release_console_sem();

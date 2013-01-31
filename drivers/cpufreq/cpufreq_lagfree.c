@@ -35,12 +35,12 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_UP_THRESHOLD				(50)
-#define DEF_FREQUENCY_DOWN_THRESHOLD				(15)
+#define DEF_FREQUENCY_UP_THRESHOLD			(50)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(15)
 #define FREQ_STEP_DOWN 						(160000)
 #define FREQ_SLEEP_MAX 						(320000)
 #define FREQ_AWAKE_MIN 						(480000)
-#define FREQ_STEP_UP_SLEEP_PERCENT				(20)
+#define FREQ_STEP_UP_SLEEP_PERCENT 			(20)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -329,7 +329,7 @@ static struct attribute * dbs_attributes[] = {
 
 static struct attribute_group dbs_attr_group = {
 	.attrs = dbs_attributes,
-	.name = "Lagfree",
+	.name = "lagfree",
 };
 
 /************************** sysfs end ************************/
@@ -401,11 +401,11 @@ static void dbs_check_cpu(int cpu)
 		this_dbs_info->requested_freq += freq_target;
 		if (this_dbs_info->requested_freq > policy->max)
 			this_dbs_info->requested_freq = policy->max;
-		
+
 		//Screen off mode
 		if (suspended && this_dbs_info->requested_freq > FREQ_SLEEP_MAX)
 		    this_dbs_info->requested_freq = FREQ_SLEEP_MAX;
-		    
+
 		//Screen off mode
 		if (!suspended && this_dbs_info->requested_freq < FREQ_AWAKE_MIN)
 		    this_dbs_info->requested_freq = FREQ_AWAKE_MIN;
@@ -460,14 +460,14 @@ static void dbs_check_cpu(int cpu)
 			this_dbs_info->requested_freq = policy->min;
 		else
 			this_dbs_info->requested_freq -= freq_target;
-		
+
 		if (this_dbs_info->requested_freq < policy->min)
 			this_dbs_info->requested_freq = policy->min;
-			
+
 		//Screen on mode
 		if (!suspended && this_dbs_info->requested_freq < FREQ_AWAKE_MIN)
 		    this_dbs_info->requested_freq = FREQ_AWAKE_MIN;
-		
+
 		//Screen off mode
 		if (suspended && this_dbs_info->requested_freq > FREQ_SLEEP_MAX)
 		    this_dbs_info->requested_freq = FREQ_SLEEP_MAX;
@@ -611,7 +611,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 static
 #endif
 struct cpufreq_governor cpufreq_gov_lagfree = {
-	.name			= "Lagfree",
+	.name			= "lagfree",
 	.governor		= cpufreq_governor_dbs,
 	.max_transition_latency	= TRANSITION_LATENCY_LIMIT,
 	.owner			= THIS_MODULE,
@@ -659,4 +659,4 @@ fs_initcall(cpufreq_gov_dbs_init);
 #else
 module_init(cpufreq_gov_dbs_init);
 #endif
-module_exit(cpufreq_gov_dbs_exit);
+module_exit(cpufreq_gov_dbs_exit); 

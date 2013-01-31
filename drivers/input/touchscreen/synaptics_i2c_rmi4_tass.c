@@ -857,7 +857,6 @@ static ssize_t firmware_show(struct device *dev, struct device_attribute *attr, 
 		printk("[TSP] %s:%d, ver SW=%x, HW=%x\n", __func__,__LINE__, buf_show[1], buf_show[0] );
 
 		phone_ver = SMAC_HEX_SW_VER;
-		//HW_ver = 0x02;
 	}
 	else{
 		phone_ver = 0;
@@ -871,14 +870,8 @@ static ssize_t firmware_show(struct device *dev, struct device_attribute *attr, 
 	   The X is the Firmware version what phone has.
 	   The Y is the Firmware version what TSP has. */
 
-	//sprintf(buf, "%02X%02X%02X\n", HW_ver, phone_ver , SW_ver );
-	//sprintf(buf, "%02X%02X%02X\n", ((((HW_ver+1)/10)+1)*100), phone_ver , SW_ver );
-	
-	if ( HW_ver == 1 )
-		sprintf(buf, "%02X%02X%02X\n", ((HW_ver+2)), phone_ver, SW_ver);
-	else	
-		sprintf(buf, "%02X%02X%02X\n", (((HW_ver+1)/10)+1), phone_ver , SW_ver );
-	
+	sprintf(buf, "%02X%02X%02X\n", HW_ver, phone_ver , SW_ver );
+
 	return sprintf(buf, "%s", buf );
 }
 

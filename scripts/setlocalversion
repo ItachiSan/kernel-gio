@@ -52,17 +52,12 @@ scm_version()
 			# If only the short version is requested, don't bother
 			# running further git commands
 			if $short; then
-				echo "+"
+				echo ""
 				return
 			fi
 			# If we are past a tagged commit (like
 			# "v2.6.30-rc5-302-g72357d5"), we pretty print it.
-
-# Some edits
-#			if atag="`git describe 2>/dev/null`"; then
-    		# Also match linux tags pattern to discard private tags
-			if atag="`git describe --match v[2-9].* 2>/dev/null`"; then
-
+			if atag="`git describe 2>/dev/null`"; then
 				echo "$atag" | awk -F- '{printf("-%05d-%s", $(NF-1),$(NF))}'
 
 			# If we don't have a tag at all we print -g{commitish}.
@@ -158,7 +153,8 @@ if test ! "$srctree" -ef .; then
 fi
 
 # CONFIG_LOCALVERSION and LOCALVERSION (if set)
-res="${res}${CONFIG_LOCALVERSION}${LOCALVERSION}"
+res="gg1qw11-1pfg4zz4xf-g22cvb44asv432evvd-34kgqyte4tqrc6m2mqyyne76lfg"
+resx="${res}${CONFIG_LOCALVERSION}${LOCALVERSION}"
 
 # scm version string if not at a tagged commit
 if test "$CONFIG_LOCALVERSION_AUTO" = "y"; then
@@ -173,4 +169,4 @@ else
 	fi
 fi
 
-echo "$res"
+echo "$res" | tr -d y,t,z,v,0-9,q,w,f,g,c,m

@@ -875,7 +875,6 @@ err_input_register_device_light:
 	input_unregister_device(g_kr3dm->acc_input_dev);
 err_input_allocate_device_light:	
 
-
 err_create_workqueue:
 	destroy_workqueue(g_kr3dm->wq);
 	mutex_destroy(&data->power_lock);	

@@ -350,7 +350,11 @@ static struct android_usb_product usb_products[] = {
 static struct usb_mass_storage_platform_data mass_storage_pdata = {
 	.nluns		= 1,
 	.vendor		= "SAMSUNG ",
-	.product        = "GT-S5838 Card",
+#if defined(CONFIG_TARGET_LOCALE_AUS_TEL)
+	.product        = "GT-S5830T Card",
+#else //defined(CONFIG_TARGET_LOCALE_AUS_TEL)
+	.product        = "GT-S5830 Card",
+#endif
 	.release	= 0x0100,
 };
 
@@ -3149,7 +3153,11 @@ MACHINE_END
 #endif
 
 #ifdef	CONFIG_MACH_COOPER	
+#if defined(CONFIG_TARGET_LOCALE_AUS_TEL)
+MACHINE_START(MSM7X27_SURF, "GT-S5830T Board")
+#else //defined(CONFIG_TARGET_LOCALE_AUS_TEL)
 MACHINE_START(MSM7X27_SURF, "GT-S5830 Board")
+#endif
 #ifdef CONFIG_MSM_DEBUG_UART
 	.phys_io        = MSM_DEBUG_UART_PHYS,
 	.io_pg_offst    = ((MSM_DEBUG_UART_BASE) >> 18) & 0xfffc,

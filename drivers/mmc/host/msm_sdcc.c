@@ -15,7 +15,6 @@
  *
  */
 
-#include <mach/gpio.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/init.h>
@@ -162,7 +161,10 @@ msmsdcc_request_end(struct msmsdcc_host *host, struct mmc_request *mrq)
 	host->curr.mrq = NULL;
 	host->curr.cmd = NULL;
 
-	del_timer(&host->req_tout_timer);
+    if(&host->req_tout_timer !=  NULL)
+		del_timer(&host->req_tout_timer);
+
+	if(mrq == NULL) return;
 
 	if (mrq->data)
 		mrq->data->bytes_xfered = host->curr.data_xfered;
@@ -626,6 +628,9 @@ msmsdcc_data_err(struct msmsdcc_host *host, struct mmc_data *data,
 		      mmc_hostname(host->mmc), status);
 		data->error = -EIO;
 	}
+       /* Dummy CMD52 is not needed when CMD53 has errors */      
+	if (host->plat->dummy52_required && host->dummy_52_needed)               
+		host->dummy_52_needed = 0;	
 }
 
 
@@ -857,8 +862,11 @@ static void msmsdcc_do_cmdirq(struct msmsdcc_host *host, uint32_t status)
 					host->prog_scan = 0;
 					host->prog_enable = 0;
 				}
-				if (cmd->data && cmd->error)
+				if (cmd->data && cmd->error){
 					msmsdcc_reset_and_restore(host);
+					if (host->plat->dummy52_required && host->dummy_52_needed)
+						host->dummy_52_needed = 0;
+				}	
 				msmsdcc_request_end(host, cmd->mrq);
 			}
 		}
@@ -1516,18 +1524,58 @@ static void msmsdcc_late_resume(struct early_suspend *h)
 static void msmsdcc_req_tout_timer_hdlr(unsigned long data)
 {
 	struct msmsdcc_host *host = (struct msmsdcc_host *)data;
-	struct mmc_command *cmd;
+	//struct mmc_command *cmd;
+	struct mmc_request *mrq;
 	unsigned long flags;
 
 	spin_lock_irqsave(&host->lock, flags);
-	cmd = host->curr.cmd;
-	if (cmd) {
+	//cmd = host->curr.cmd;
+	//if (cmd) {
+	if ((host->plat->dummy52_required) &&
+		(host->dummy_52_state == DUMMY_52_STATE_SENT)) {
+		pr_info("%s: %s: dummy CMD52 timeout\n",
+			mmc_hostname(host->mmc), __func__);
+		host->dummy_52_state = DUMMY_52_STATE_NONE;
+	}
+	mrq = host->curr.mrq;
+	if (mrq && mrq->cmd) {
 		pr_info("%s: %s CMD%d\n", mmc_hostname(host->mmc),
-			__func__, cmd->opcode);
-		if (!cmd->error)
-			cmd->error = -ETIMEDOUT;
-		msmsdcc_reset_and_restore(host);
-		msmsdcc_request_end(host, cmd->mrq);
+		__func__, mrq->cmd->opcode);
+		if (!mrq->cmd->error)                       
+			mrq->cmd->error = -ETIMEDOUT;               
+		if (host->plat->dummy52_required && host->dummy_52_needed)                       
+			host->dummy_52_needed = 0;               
+		if (host->curr.data) {                       
+			pr_info("%s: %s Request timeout\n",                                       
+				mmc_hostname(host->mmc), __func__);                       
+			if (mrq->data && !mrq->data->error)                               
+				mrq->data->error = -ETIMEDOUT;                       
+			host->curr.data_xfered = 0;                       
+			if (host->dma.sg /*&& host->is_dma_mode*/) {                               
+				msm_dmov_stop_cmd(host->dma.channel,                                               
+					&host->dma.hdr, 0);  
+#if 0				
+			} else if (host->sps.sg && host->is_sps_mode) {                               
+			/* Stop current SPS transfer */                               
+			msmsdcc_sps_exit_curr_xfer(host); 
+#endif			
+			} else {                               
+			msmsdcc_reset_and_restore(host);                               
+			msmsdcc_stop_data(host);                               
+			if (mrq->data && mrq->data->stop)                                       
+				msmsdcc_start_command(host,mrq->data->stop, 0);                               
+			else                                       
+				msmsdcc_request_end(host, mrq);                       
+			}               
+		} 
+		else {                       
+			if (host->prog_enable) {                               
+				host->prog_scan = 0;                               
+				host->prog_enable = 0;                       
+			}                       
+			msmsdcc_reset_and_restore(host);                       
+			msmsdcc_request_end(host, mrq);               
+		}
 	}
 	spin_unlock_irqrestore(&host->lock, flags);
 }
@@ -1558,7 +1606,7 @@ msmsdcc_probe(struct platform_device *pdev)
 	if (pdev->id < 1 || pdev->id > 5)
 		return -EINVAL;
 
-	if (pdev->resource == NULL || pdev->num_resources < 3) {
+	if (pdev->resource == NULL || pdev->num_resources < 2) {
 		pr_err("%s: Invalid resource\n", __func__);
 		return -ENXIO;
 	}
@@ -1618,9 +1666,12 @@ msmsdcc_probe(struct platform_device *pdev)
 	/*
 	 * Setup DMA
 	 */
-	ret = msmsdcc_init_dma(host);
-	if (ret)
-		goto ioremap_free;
+	if (host->dmares) {
+		ret = msmsdcc_init_dma(host);
+		if (ret)
+			goto ioremap_free;
+	} else
+		host->dma.channel = -1;
 
 	/*
 	 * Setup SDCC clock if derived from Dayatona
@@ -1696,7 +1747,7 @@ msmsdcc_probe(struct platform_device *pdev)
 	mmc->max_phys_segs = NR_SG;
 	mmc->max_hw_segs = NR_SG;
 	mmc->max_blk_size = 4096;	/* MCI_DATA_CTL BLOCKSIZE up to 4096 */
-	mmc->max_blk_count = 65536;
+	mmc->max_blk_count = 65535;
 
 	mmc->max_req_size = 33554432;	/* MCI_DATA_LENGTH is 25 bits */
 	mmc->max_seg_size = mmc->max_req_size;
@@ -1903,8 +1954,9 @@ msmsdcc_probe(struct platform_device *pdev)
 	if (!IS_ERR_OR_NULL(host->dfab_pclk))
 		clk_put(host->dfab_pclk);
  dma_free:
-	dma_free_coherent(NULL, sizeof(struct msmsdcc_nc_dmadata),
-			host->dma.nc, host->dma.nc_busaddr);
+	if (host->dmares)
+		dma_free_coherent(NULL, sizeof(struct msmsdcc_nc_dmadata),
+				host->dma.nc, host->dma.nc_busaddr);
  ioremap_free:
 	iounmap(host->base);
  host_free:
@@ -1981,8 +2033,21 @@ msmsdcc_runtime_suspend(struct device *dev)
 	if (mmc) {
 #if 0 /* ATHENV +++ avoid this otherwise wakelock will prevent system suspend*/
 		host->sdcc_suspending = 1;
-#endif /* ATHENV --- */
 		mmc->suspend_task = current;
+
+#endif /* ATHENV --- */
+
+		/*
+		 * If the clocks are already turned off by SDIO clients (as
+		 * part of LPM), then clocks should be turned on before
+		 * calling mmc_suspend_host() because mmc_suspend_host might
+		 * send some commands to the card. The clocks will be turned
+		 * off again after mmc_suspend_host. Thus for SD/MMC/SDIO
+		 * cards, clocks will be turned on before mmc_suspend_host
+		 * and turned off after mmc_suspend_host.
+		 */
+		mmc->ios.clock = host->clk_rate;
+		mmc->ops->set_ios(host->mmc, &host->mmc->ios);
 
 		/*
 		 * MMC core thinks that host is disabled by now since

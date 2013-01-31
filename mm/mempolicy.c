@@ -1291,15 +1291,14 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pid, unsigned long, maxnode,
 		return err;
 
 	/* Find the mm_struct */
-	rcu_read_lock();
+	read_lock(&tasklist_lock);
 	task = pid ? find_task_by_vpid(pid) : current;
 	if (!task) {
-		rcu_read_unlock();
-		err = -ESRCH;
-		goto out;
+		read_unlock(&tasklist_lock);
+		return -ESRCH;
 	}
 	mm = get_task_mm(task);
-	rcu_read_unlock();
+	read_unlock(&tasklist_lock);
 
 	if (!mm)
 		return -EINVAL;
@@ -1577,7 +1576,7 @@ unsigned slab_node(struct mempolicy *policy)
 		(void)first_zones_zonelist(zonelist, highest_zoneidx,
 							&policy->v.nodes,
 							&zone);
-		return zone ? zone->node : numa_node_id();
+		return zone->node;
 	}
 
 	default:

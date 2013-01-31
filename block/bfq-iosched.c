@@ -379,32 +379,31 @@ static void bfq_add_rq_rb(struct request *rq)
 
 		if (! bfqd->low_latency)
 			goto add_bfqq_busy;
-
 		/*
 		 * If the queue is not being boosted and has been idle
-		 * for enough time, start a weight-raising period
+		 * for enough time, start a boosting period
 		 */
 		if(old_raising_coeff == 1 &&
-		    bfqq->last_rais_start_finish +
-		    bfqd->bfq_raising_min_idle_time < jiffies) {
-			bfqq->raising_coeff = bfqd->bfq_raising_coeff;
-			entity->ioprio_changed = 1;
-			bfq_log_bfqq(bfqd, bfqq,
-				     "wrais starting at %lu msec",
-				     bfqq->last_rais_start_finish);
-		}
+ 		    bfqq->last_rais_start_finish +
+ 		    bfqd->bfq_raising_min_idle_time < jiffies) {
+ 			bfqq->raising_coeff = bfqd->bfq_raising_coeff;
+ 			entity->ioprio_changed = 1;
+ 			bfq_log_bfqq(bfqd, bfqq,
+ 				     "wrais starting at %lu msec",
+ 				     bfqq->last_rais_start_finish);
+  		}
 add_bfqq_busy:
 		bfq_add_bfqq_busy(bfqd, bfqq);
 	} else
 		bfq_updated_next_req(bfqd, bfqq);
 
-	if (! bfqd->low_latency)
-		return;
-
-	if(old_raising_coeff == 1 ||
-	   (bfqd->bfq_raising_max_softrt_rate > 0 &&
-		bfqq->soft_rt_next_start < jiffies))
-		bfqq->last_rais_start_finish = jiffies;
+ 	if (! bfqd->low_latency)
+ 		return;
+ 
+ 	if(old_raising_coeff == 1 ||
+ 	   (bfqd->bfq_raising_max_softrt_rate > 0 &&
+ 		bfqq->soft_rt_next_start < jiffies))
+ 		bfqq->last_rais_start_finish = jiffies;
 }
 
 static void bfq_reposition_rq_rb(struct bfq_queue *bfqq, struct request *rq)
@@ -2283,20 +2282,20 @@ STORE_FUNCTION(bfq_max_budget_async_rq_store, &bfqd->bfq_max_budget_async_rq,
 STORE_FUNCTION(bfq_timeout_async_store, &bfqd->bfq_timeout[BLK_RW_ASYNC], 0,
 		INT_MAX, 1);
 STORE_FUNCTION(bfq_raising_coeff_store, &bfqd->bfq_raising_coeff, 1,
-		INT_MAX, 0);
+ 		INT_MAX, 0);
 STORE_FUNCTION(bfq_raising_max_time_store, &bfqd->bfq_raising_max_time, 0,
-		INT_MAX, 1);
+ 		INT_MAX, 1);
 STORE_FUNCTION(bfq_raising_min_idle_time_store,
-	       &bfqd->bfq_raising_min_idle_time, 0, INT_MAX, 1);
+ 	       &bfqd->bfq_raising_min_idle_time, 0, INT_MAX, 1);
 STORE_FUNCTION(bfq_raising_max_softrt_rate_store,
-	       &bfqd->bfq_raising_max_softrt_rate, 0, INT_MAX, 0);
+ 	       &bfqd->bfq_raising_max_softrt_rate, 0, INT_MAX, 0);
 #undef STORE_FUNCTION
 
 /* do nothing for the moment */
 static ssize_t bfq_weights_store(struct elevator_queue *e,
-				    const char *page, size_t count)
+			    const char *page, size_t count)
 {
-	return count;
+ 	return count;
 }
 
 static inline bfq_service_t bfq_estimated_max_budget(struct bfq_data *bfqd)

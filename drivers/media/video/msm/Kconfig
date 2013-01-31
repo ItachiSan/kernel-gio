@@ -53,7 +53,7 @@ config S5K5CCAF
 	default n
 	---help---
 	  SAMSUNG 3M CMOS Sensor
-
+	  
 config S5K5CCAF_GIO
 	bool "Sensor s5k5cc 1/5 (3M/AF)"
 	default n
@@ -96,7 +96,7 @@ config S5K4ECGX_GIO
 	bool "Sensor s5k4ecgx (5M)"
 	default n
 	---help---
-	  SAMSUNG LSI 5M CMOS Sensor
+	  SAMSUNG LSI 5M CMOS Sensor 		  
 
 config IMX074
 	bool "Sensor IMX074 (BAYER 13.5M)"

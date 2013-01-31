@@ -1,10 +1,10 @@
-KERNEL_BUILD_PATH ?= "/lib/modules/$(shell uname -r)/build"
+KERNEL_BUILD_PATH ?= "/home/dhiika/kernel-cyanogen-gio/"
 
 XVM = sub-projects/allocators/xvmalloc-kmod
 EXTRA_CFLAGS	:=	-DCONFIG_RAMZSWAP_STATS		\
 			-Wall
 
-obj-$(CONFIG_RAMZSWAP)	+=	ramzswap.o
+obj-m		+=	ramzswap.o
 ramzswap-objs	:=	ramzswap_drv.o $(XVM)/xvmalloc.o
 
 all:

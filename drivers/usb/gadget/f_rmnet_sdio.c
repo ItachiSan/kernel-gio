@@ -51,9 +51,9 @@ MODULE_PARM_DESC(rmnet_sdio_data_ch, "RmNet data SDIO channel ID");
 #define RMNET_SDIO_NOTIFY_INTERVAL  5
 #define RMNET_SDIO_MAX_NFY_SZE  sizeof(struct usb_cdc_notification)
 
-#define RMNET_SDIO_RX_REQ_MAX             8
-#define RMNET_SDIO_RX_REQ_SIZE            2048
-#define RMNET_SDIO_TX_REQ_MAX             8
+#define RMNET_SDIO_RX_REQ_MAX             16
+#define RMNET_SDIO_RX_REQ_SIZE            4096
+#define RMNET_SDIO_TX_REQ_MAX             100
 
 /* QMI requests & responses buffer*/
 struct rmnet_sdio_qmi_buf {
@@ -419,7 +419,7 @@ rmnet_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 	struct rmnet_sdio_qmi_buf *resp;
 
 	if (!atomic_read(&dev->sdio_open))
-		return -ENOTSUPP;
+		return 0;
 
 	if (!atomic_read(&dev->online))
 		return -ENOTCONN;

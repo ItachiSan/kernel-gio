@@ -8,6 +8,7 @@
 
 
 
+
 #ifndef __BMA220_H__
 #define __BMA220_H__
 

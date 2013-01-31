@@ -338,9 +338,9 @@ struct bfq_queue {
 
 	pid_t pid;
 
-        /* weight-raising fileds */
-        u64 last_rais_start_finish, soft_rt_next_start;
-        unsigned int raising_coeff;
+	/* weight-raising fileds */
+ 	u64 last_rais_start_finish, soft_rt_next_start;
+ 	unsigned int raising_coeff;
 };
 
 enum bfqq_state_flags {

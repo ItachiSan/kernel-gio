@@ -89,8 +89,6 @@ static void early_suspend(struct work_struct *work)
 	unsigned long irqflags;
 	int abort = 0;
 
-	pr_info("%s: start\n", __func__); 
-
 	mutex_lock(&early_suspend_lock);
 	spin_lock_irqsave(&state_lock, irqflags);
 	if (state == SUSPEND_REQUESTED)
@@ -98,7 +96,6 @@ static void early_suspend(struct work_struct *work)
 	else
 		abort = 1;
 	spin_unlock_irqrestore(&state_lock, irqflags);
-	pr_info("%s: after state checking\n", __func__); 
 
 	if (abort) {
 		if (debug_mask & DEBUG_SUSPEND)
@@ -110,13 +107,9 @@ static void early_suspend(struct work_struct *work)
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("early_suspend: call handlers\n");
 	list_for_each_entry(pos, &early_suspend_handlers, link) {
-		if (pos->suspend != NULL) {
-			pr_info(" # %p : ", pos->suspend); 
+		if (pos->suspend != NULL)
 			pos->suspend(pos);
 	}
-	}
-	pr_info("%s: after calling suspend handlers\n", __func__); 
-
 	mutex_unlock(&early_suspend_lock);
 
 	if (debug_mask & DEBUG_SUSPEND)
@@ -125,17 +118,11 @@ static void early_suspend(struct work_struct *work)
 	// hsil
 //	sys_sync();
 	queue_work(sync_work_queue, &sync_system_work);
-	pr_info("%s: after calling sync_work_queue\n", __func__); 
-	
 abort:
-	pr_info("%s: abort label / before spin lock\n", __func__); 
 	spin_lock_irqsave(&state_lock, irqflags);
-	if (state == SUSPEND_REQUESTED_AND_SUSPENDED) {
+	if (state == SUSPEND_REQUESTED_AND_SUSPENDED)
 		wake_unlock(&main_wake_lock);
-		pr_info("%s: unlocked main_wake_lock\n", __func__); 
-	}
 	spin_unlock_irqrestore(&state_lock, irqflags);
-	pr_info("%s: end\n", __func__); 
 }
 
 static void late_resume(struct work_struct *work)
@@ -144,8 +131,6 @@ static void late_resume(struct work_struct *work)
 	unsigned long irqflags;
 	int abort = 0;
 
-	pr_info("%s: start\n", __func__); 
-
 	mutex_lock(&early_suspend_lock);
 	spin_lock_irqsave(&state_lock, irqflags);
 	if (state == SUSPENDED)
@@ -153,7 +138,6 @@ static void late_resume(struct work_struct *work)
 	else
 		abort = 1;
 	spin_unlock_irqrestore(&state_lock, irqflags);
-	pr_info("%s: after checking state\n", __func__); 
 
 	if (abort) {
 		if (debug_mask & DEBUG_SUSPEND)
@@ -163,15 +147,12 @@ static void late_resume(struct work_struct *work)
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("late_resume: call handlers\n");
 	list_for_each_entry_reverse(pos, &early_suspend_handlers, link)
-		if (pos->resume != NULL) {
-			pr_info(" # %p : ", pos->resume); 
+		if (pos->resume != NULL)
 			pos->resume(pos);
-		}
 	if (debug_mask & DEBUG_SUSPEND)
 		pr_info("late_resume: done\n");
 abort:
 	mutex_unlock(&early_suspend_lock);
-	pr_info("%s: end\n", __func__); 
 }
 
 void request_suspend_state(suspend_state_t new_state)

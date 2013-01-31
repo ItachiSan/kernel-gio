@@ -3,18 +3,14 @@
  */
 
 /*
-
  * This software program is licensed subject to the GNU General Public License
-
  * (GPL).Version 2,June 1991, available at http://www.fsf.org/copyleft/gpl.html
 
-
-
  * (C) Copyright 2010 Bosch Sensortec GmbH
-
  * All Rights Reserved
-
  */
+
+
 
 /*! \file BMA023_driver.c
     \brief This file contains all function implementations for the BMA023 in linux
@@ -355,7 +351,7 @@ static ssize_t bma_fs_cal(struct device *dev, struct device_attribute *attr, cha
 	bma222acc_t acc;
 	char data[3];
 	
-#if (defined (CONFIG_MACH_TASS))
+#if (defined (CONFIG_MACH_TASS)) || (defined (CONFIG_MACH_TASSDT))
 		data[0] = 0; //x
 		data[1] = 0; //y
 		data[2] = 2; //z ("2" means "-1"-> 0 0 -64)
@@ -871,12 +867,12 @@ static ssize_t poll_delay_store(struct device *dev,struct device_attribute *attr
 	err = strict_strtoll(buf, 10, &new_delay);
 	if (err < 0)
 		return err;
-
-        /* HACK: workaround to prevent apps such as Google Maps 6.x from polling sensors excessively.
-         * Please let me know if there's a better way to do this! -psyke83 */
-        if (new_delay < 10000000 ) {
-            new_delay = 10000000;
-        }
+	
+	/* HACK: workaround to prevent apps such as Google Maps 6.x from polling sensors excessively.
+	 * Please let me know if there's a better way to do this! -psyke83 */
+	if (new_delay < 10000000 ) {
+	  new_delay = 10000000;
+	}
 
 	printk("new delay = %lldns, old delay = %lldns\n",
 		    new_delay, ktime_to_ns(g_bma222->acc_poll_delay));

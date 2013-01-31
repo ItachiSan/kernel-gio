@@ -320,14 +320,6 @@ static int mmc_sdio_init_card(struct mmc_host *host, u32 ocr,
 		if (err)
 			goto remove;
 
-		/*
-		 * Update oldcard with the new RCA received from the SDIO
-		 * device -- we're doing this so that it's updated in the
-		 * "card" struct when oldcard overwrites that later.
-		 */
-		if (oldcard)
-			oldcard->rca = card->rca;
-
 		mmc_set_bus_mode(host, MMC_BUSMODE_PUSHPULL);
 	}
 
@@ -502,13 +494,11 @@ static int mmc_sdio_suspend(struct mmc_host *host)
 		}
 	}
 #ifdef SDIO_SWITCH_1BIT_MODE_ON_SUSPEND
-	
 	if (!err && host->pm_flags & MMC_PM_KEEP_POWER) {
 		mmc_claim_host(host);
 		sdio_disable_wide(host->card);
 		mmc_release_host(host);
 	}
-	
 #endif
 	return err;
 }
@@ -525,9 +515,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
 	mmc_claim_host(host);
 	err = mmc_sdio_init_card(host, host->ocr, host->card,
 				 (host->pm_flags & MMC_PM_KEEP_POWER));
-
 #ifdef SDIO_SWITCH_1BIT_MODE_ON_SUSPEND
-	
 	if (!err)
 		/* We may have switched to 1-bit mode during suspend. */
 		err = sdio_enable_wide(host->card);

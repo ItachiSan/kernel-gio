@@ -46,18 +46,21 @@ endif
 ifeq ($(CONFIG_MACH_COOPER),y)
 obj-$(CONFIG_BATTERY_MSM)	+= cooper_battery.o
 endif
+ifeq ($(CONFIG_MACH_GIO),y)
+obj-$(CONFIG_BATTERY_MSM)	+= gio_battery.o
+endif
 ifeq ($(CONFIG_MACH_BENI),y)
 obj-$(CONFIG_BATTERY_MSM)	+= beni_battery.o
 endif
 ifeq ($(CONFIG_MACH_TASS),y)
 obj-$(CONFIG_BATTERY_MSM)	+= tass_battery.o
 endif
+ifeq ($(CONFIG_MACH_TASSDT),y)
+obj-$(CONFIG_BATTERY_MSM)	+= tassdt_battery.o
+endif
 ifeq ($(CONFIG_MACH_LUCAS),y)
 obj-$(CONFIG_BATTERY_MSM)	+= lucas_battery.o
 endif
 ifeq ($(CONFIG_MACH_CALLISTO),y)
 obj-$(CONFIG_BATTERY_MSM)	+= callisto_battery.o
-endif
-ifeq ($(CONFIG_MACH_GIO),y)
-obj-$(CONFIG_BATTERY_MSM)	+= gio_battery.o
 endif

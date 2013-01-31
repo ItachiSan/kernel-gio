@@ -1,9 +1,7 @@
 /*
         Scary governor based off of conservatives source with some of smartasses features
         
-        For devs - If you're going to port this driver to other devices, make sure to edit
-	the default sleep frequencies & prev frequencies or else you might be going outside
-	your devices hardware limits.
+        For devs - If you're going to port this driver to other devices, make sure to edit the default sleep frequencies & prev frequencies or else you might be going outside your devices hardware limits.
 */
 
 #include <linux/kernel.h>
@@ -30,10 +28,10 @@
 
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(45)
-#define DEFAULT_SLEEP_MAX_FREQ 245760
+#define DEFAULT_SLEEP_MAX_FREQ 320000
 #define DEFAULT_SLEEP_MIN_FREQ 122880
 #define DEFAULT_SLEEP_PREV_FREQ 122880 //This is so that if there are any issues resulting in sleep_prev_freq getting set, there will be a backup freq
-#define DEFAULT_PREV_MAX 1024000
+#define DEFAULT_PREV_MAX 787200
 static unsigned int suspended;
 static unsigned int sleep_max_freq=DEFAULT_SLEEP_MAX_FREQ;
 static unsigned int sleep_min_freq=DEFAULT_SLEEP_MIN_FREQ;
@@ -703,7 +701,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	return 0;
 }
 
-#ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_SCARY
+#ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_Scary
 static
 #endif
 struct cpufreq_governor cpufreq_gov_scary = {
@@ -743,4 +741,3 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit);
-

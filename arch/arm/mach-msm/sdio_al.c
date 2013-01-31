@@ -135,7 +135,7 @@
 #define PIPE_TX_FIFO_ADDR   0x00
 
 /** Inactivity time to go to sleep in mseconds */
-#define INACTIVITY_TIME_MSEC 100
+#define INACTIVITY_TIME_MSEC 30
 #define INITIAL_INACTIVITY_TIME_MSEC 5000
 
 /** Context validity check */
@@ -273,7 +273,7 @@ struct peer_sdioc_channel_config {
 /* Identifies if there are new features released */
 #define PEER_SDIOC_BOOT_VERSION_MINOR	0x0001
 /* Identifies if there is backward compatibility */
-#define PEER_SDIOC_BOOT_VERSION_MAJOR	0x0001
+#define PEER_SDIOC_BOOT_VERSION_MAJOR	0x0002
 
 #define PEER_CHANNEL_NAME_SIZE		4
 

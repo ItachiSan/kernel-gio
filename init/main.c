@@ -462,10 +462,13 @@ static noinline void __init_refok rest_init(void)
 int arm9_uses_uart3=0;
 #endif
 
-#if defined(CONFIG_MACH_EUROPA) || defined(CONFIG_MACH_CALLISTO) || defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_LUCAS) || defined(CONFIG_MACH_GIO)
+#if defined(CONFIG_MACH_EUROPA) || defined(CONFIG_MACH_CALLISTO) || defined(CONFIG_MACH_COOPER)  || defined(CONFIG_MACH_GIO)|| defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_TASSDT) || defined(CONFIG_MACH_LUCAS)
 unsigned int board_hw_revision;
 #endif
 
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_TASS)
+char Sales_Code[3];
+#endif
 /* Check for early params. */
 static int __init do_early_param(char *param, char *val)
 {
@@ -494,7 +497,7 @@ static int __init do_early_param(char *param, char *val)
 		printk("Europa H/W revision : 0x0%d\n",board_hw_revision);
 	}
 #endif
-#if defined(CONFIG_MACH_CALLISTO) || defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_LUCAS)
+#if defined(CONFIG_MACH_CALLISTO) || defined(CONFIG_MACH_BENI) || defined(CONFIG_MACH_TASS) || defined(CONFIG_MACH_TASSDT) || defined(CONFIG_MACH_LUCAS)
 	if ( (strcmp(param, "hw") == 0 ) )
 	{
 		if (strcmp(val, "1") == 0)
@@ -517,7 +520,7 @@ static int __init do_early_param(char *param, char *val)
 	}
 #endif
 		
-#if defined(CONFIG_MACH_COOPER) 
+#if defined(CONFIG_MACH_COOPER)
 	if ( (strcmp(param, "hw") == 0 ) )
 	{
 		if (strcmp(val, "1") == 0)
@@ -569,13 +572,23 @@ static int __init do_early_param(char *param, char *val)
 			board_hw_revision = 12;
 		else	
 			board_hw_revision = 0;
-		printk("Gio H/W revision : 0x0%d\n",board_hw_revision);
+		printk("Cooper H/W revision : 0x0%d\n",board_hw_revision);
 	}
 #endif
 
 	// for Revision in /proc/cpuinfo 
 	system_rev = board_hw_revision;
 #endif
+
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_TASS)
+	if ( (strcmp(param, "salescode") == 0 ) )
+	{
+		memset(Sales_Code,0x00,sizeof(Sales_Code));
+		memcpy(Sales_Code,val,3);
+		printk("Sexykyu Salescode : %s\n",Sales_Code);
+	}
+#endif
+
 	for (p = __setup_start; p < __setup_end; p++) {
 		if ((p->early && strcmp(param, p->str) == 0) ||
 		    (strcmp(param, "console") == 0 &&

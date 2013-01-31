@@ -25,23 +25,16 @@
 static int orig_fgconsole;
 static void console_early_suspend(struct early_suspend *h)
 {
-	printk("%s / acquire_console_sem\n", __func__); 
 	acquire_console_sem();
 	orig_fgconsole = fg_console;
-	printk("%s / alloc\n", __func__); 
 	if (vc_allocate(EARLY_SUSPEND_CONSOLE))
 		goto err;
-	printk("%s / set_console\n", __func__); 
 	if (set_console(EARLY_SUSPEND_CONSOLE))
 		goto err;
-	printk("%s / release_console_sem\n", __func__); 
 	release_console_sem();
 
-	printk("%s / vt_waitactive\n", __func__); 
 	if (vt_waitactive(EARLY_SUSPEND_CONSOLE + 1))
 		pr_warning("console_early_suspend: Can't switch VCs.\n");
-
-	printk("%s / end\n", __func__); 
 	return;
 err:
 	pr_warning("console_early_suspend: Can't set console\n");
@@ -71,9 +64,7 @@ static struct early_suspend console_early_suspend_desc = {
 
 static int __init console_early_suspend_init(void)
 {
-	printk("EARLY-%s #1\n", __func__); 
 	register_early_suspend(&console_early_suspend_desc);
-	printk("EARLY-%s #2\n", __func__); 
 	return 0;
 }
 

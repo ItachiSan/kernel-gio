@@ -351,7 +351,11 @@ static struct android_usb_product usb_products[] = {
 static struct usb_mass_storage_platform_data mass_storage_pdata = {
 	.nluns		= 1,
 	.vendor		= "SAMSUNG ",
-	.product        = "GT-S5578 Card",
+#ifdef CONFIG_SAMSUNG_TASS_ISL_B //netq change for model name for TassB israel PCL 
+	.product	= "GT-S5570B Card",
+#else 
+	.product        = "GT-S5570 Card",
+#endif	
 	.release	= 0x0100,
 };
 

@@ -2,7 +2,11 @@
  * leds-msm-pmic.c - MSM PMIC LEDs driver.
  *
  * Copyright (c) 2009, Code Aurora Forum. All rights reserved.
- *
+ * Copyright (C) 2011, Michael Richter (alias neldar)
+ * Copyright (C) 2011, Ketut P. Kumajaya
+ * Copyright (C) 2011, Kolja Dummann <k.dummann@gmail.com>
+ * Copyright (C) 2011, phiexz
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
  * only version 2 as published by the Free Software Foundation.
@@ -35,7 +39,7 @@ static unsigned char n_GPIO_KEY_LED_EN = 78;
 #else
 static unsigned char n_GPIO_KEY_LED_EN = 97;
 #endif
-#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_GIO)
+#if defined(CONFIG_MACH_COOPER) || defined(CONFIG_MACH_GIO) || defined(CONFIG_MACH_TASSDT)
 static struct vreg *vreg_keyled;
 #endif
 
@@ -79,6 +83,13 @@ static void msm_keypad_bl_led_set(struct led_classdev *led_cdev,
 		gpio_set_value(n_GPIO_KEY_LED_EN, 1);
 	else
 		gpio_set_value(n_GPIO_KEY_LED_EN, 0);
+#endif
+
+#if defined(CONFIG_MACH_TASSDT)
+	if (value)
+		vreg_enable(vreg_keyled);
+	else
+		vreg_disable(vreg_keyled);
 #endif
 
 	 state = value;
@@ -240,11 +251,11 @@ static struct miscdevice backlightnotification_device = {
 static int msm_pmic_led_probe(struct platform_device *pdev)
 {
 	int rc, ret = 0;
-#if !defined(CONFIG_MACH_COOPER) && !defined(CONFIG_MACH_GIO)
+#if !defined(CONFIG_MACH_COOPER) && !defined(CONFIG_MACH_GIO) && !defined(CONFIG_MACH_TASSDT)
 	struct vreg *vreg_keyled;
 #endif
 
-#ifdef CONFIG_MACH_COOPER
+#if defined(CONFIG_MACH_COOPER)
 	if ( board_hw_revision >= 0x3 )
 	{
 	vreg_keyled = vreg_get(NULL, "ldo17");
@@ -256,10 +267,16 @@ static int msm_pmic_led_probe(struct platform_device *pdev)
 		ret = vreg_set_level(vreg_keyled, OUT3000mV);
 	}
 #endif
+
 #if defined(CONFIG_MACH_GIO)
 	vreg_keyled = vreg_get(NULL, "ldo17");
 	ret = vreg_set_level(vreg_keyled, OUT2800mV);
 #endif
+#if defined(CONFIG_MACH_TASSDT)
+	vreg_keyled = vreg_get(NULL, "ldo4");
+	ret = vreg_set_level(vreg_keyled, OUT3000mV);
+#endif
+
 	rc = led_classdev_register(&pdev->dev, &msm_kp_bl_led);
 	if (rc) {
 		dev_err(&pdev->dev, "unable to register led class driver\n");

@@ -286,12 +286,12 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
 	} else if (fully_mapped) {
 		SetPageMappedToDisk(page);
 	}
-
-        if (fully_mapped && blocks_per_page == 1 && !PageUptodate(page) &&
-            cleancache_get_page(page) == 0) {
-            SetPageUptodate(page);
-            goto confused;
-        }
+	
+	if (fully_mapped && blocks_per_page == 1 && !PageUptodate(page) &&
+	  cleancache_get_page(page) == 0) {
+	  SetPageUptodate(page);
+	  goto confused;
+	}
 
 	/*
 	 * This page will go to BIO.  Do we need to send this BIO off first?

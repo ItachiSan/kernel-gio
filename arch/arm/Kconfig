@@ -5,13 +5,6 @@
 
 mainmenu "Linux Kernel Configuration"
 
-config MACH_COOPER_CHN_CU
-bool
-
-config MACH_TASS_CHN_CU
- bool
-
-
 config ARM
 	bool
 	default y
@@ -285,6 +278,7 @@ config ARCH_AT91
 	bool "Atmel AT91"
 	select ARCH_REQUIRE_GPIOLIB
 	select HAVE_CLK
+	select ARCH_USES_GETTIMEOFFSET
 	help
 	  This enables support for systems based on the Atmel AT91RM9200,
 	  AT91SAM9 and AT91CAP9 processors.
